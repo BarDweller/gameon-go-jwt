@@ -9,8 +9,8 @@ import (
 )
 
 type GoJWT struct {
-	privateKey *rsa.PrivateKey
-	publicKey  *rsa.PublicKey
+	PrivateKey *rsa.PrivateKey
+	PublicKey  *rsa.PublicKey
 }
 
 func New(certpath, keypath string) GoJWT {
@@ -34,19 +34,18 @@ func (j *GoJWT) CreateTestJwt() string {
 	})
 	token.Header["kid"] = "playerssl"
 
-	tokenstr, _ := token.SignedString(j.privateKey)
+	tokenstr, _ := token.SignedString(j.PrivateKey)
 	return tokenstr
 }
 
 func (j *GoJWT) UpgradeJwt(oldjwt string) (string, error) {
 
 	//read old token, to obtain claims.
-
 	oldtoken, err := jwt.Parse(oldjwt, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-		return j.publicKey, nil
+		return j.PublicKey, nil
 	})
 
 	//if we failed to parse, exit here, most likely jwt has expired.
@@ -64,6 +63,6 @@ func (j *GoJWT) UpgradeJwt(oldjwt string) (string, error) {
 	token.Header["kid"] = "playerssl"
 
 	//sign token
-	tokenstr, _ := token.SignedString(j.privateKey)
+	tokenstr, _ := token.SignedString(j.PrivateKey)
 	return tokenstr, nil
 }
