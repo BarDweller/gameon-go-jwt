@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"io/ioutil"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -22,18 +23,20 @@ func New(certpath, keypath string) GoJWT {
 }
 
 func (j *GoJWT) CreateTestJwt() string {
+	return j.CreateDetailedTestJwt("dummy.DevUser", "DevUser", "devuser@dummyemail.com")
+}
 
+func (j *GoJWT) CreateDetailedTestJwt(id, name, email string) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"name":  "DevUser",
-		"id":    "dummy.DevUser",
-		"email": "devuser@dummyemail.com",
-		"sub":   "dummy.DevUser",
+		"name":  name,
+		"id":    id,
+		"email": email,
+		"sub":   id,
 		"aud":   "client",
-		"iat":   1546284632,
-		"exp":   1546457432,
+		"iat":   time.Now().UTC().Add(time.Hour * -12).Unix(),
+		"exp":   time.Now().UTC().Add(time.Hour * 12).Unix(),
 	})
 	token.Header["kid"] = "playerssl"
-
 	tokenstr, _ := token.SignedString(j.PrivateKey)
 	return tokenstr
 }
